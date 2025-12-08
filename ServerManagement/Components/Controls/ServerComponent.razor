@@ -1,0 +1,9 @@
+﻿<div>
+    <p>@_server.Name is in @_server.City </p><br/>
+    <p style="color: @(_server.IsOnline ? "green" : "red")">Server status
+        : @(_server.IsOnline ? "Online" : "Offline")</p>
+</div>
+
+@code {
+    private readonly Server _server = new() { Name = "Server 1", City = "Boston" };
+}
