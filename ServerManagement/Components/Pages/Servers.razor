@@ -1,21 +1,27 @@
 ﻿@page "/servers"
 
+@rendermode InteractiveServer
+
 @inject NavigationManager NavigationManager
 
 <h3>Servers</h3>
 <br/>
 <a href="/servers/add" class="btn btn-primary">Add Server</a>
 <br/>
+<br/>
 
 <div class="container-fluid text-center">
     <div class="row">
         @foreach (var city in _cities)
         {
-            <div class="col m-1 flex-grow-0">
-                <div class="card" style="width: 8rem;">
+            <div class="col flex-grow-0">
+                <div
+                    class="card @(selectedCity.Equals(city, StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")"
+                    style="width: 8rem">
                     <img src="@($"/images/{city}.png")" class="card-img-top" alt=""/>
                     <div class="card-body">
-                        <button type="button" class="btn btn-primary">@city</button>
+                        <button type="button" class="btn btn-primary"
+                                @onclick="@(() => { SelectCity(city); })">@city</button>
                     </div>
                 </div>
             </div>
@@ -25,30 +31,46 @@
 
 <br/>
 
-<ul>
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+        <th>Server</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
     @foreach (var server in _servers)
     {
-        <li>
-            @server.Name in @server.City is
-            <span
-                style="color: @(server.IsOnline ? "green" : "red")">@(server.IsOnline ? "online" : "offline")
+        <tr>
+            <td>
+                @server.Name in @server.City is
+                <span style="color: @(server.IsOnline ? "green" : "red")">@(server.IsOnline ? "online" : "offline")
             </span>
-            &nbsp;
-            <a href="/servers/@server.ServerId" class="btn btn-secondary">Edit</a>
-            &nbsp;
-            <EditForm Model="server" FormName="@($"form-server-{server.ServerId}")"
-                      OnValidSubmit="@(() => { DeleteServer(server.ServerId); })">
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </EditForm>
-        </li>
+            </td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <a href="/servers/@server.ServerId" class="btn btn-secondary">Edit</a>
+                    &nbsp;
+                    <EditForm Model="server" FormName="@($"form-server-{server.ServerId}")"
+                              OnValidSubmit="@(() => { DeleteServer(server.ServerId); })">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </EditForm>
+                </div>
+            </td>
+        </tr>
     }
-</ul>
-
+    </tbody>
+</table>
 
 @code {
-    private readonly List<Server> _servers = ServerRepository.GetServersByCity("Toronto");
 
-    private readonly List<string> _cities = CityRepository.GetCities();
+    private List
+        <Server> _servers = ServerRepository.GetServersByCity("Toronto");
+
+    private readonly List
+        <string> _cities = CityRepository.GetCities();
+
+    private string selectedCity = "Toronto";
 
     private void DeleteServer(int serverId)
     {
@@ -58,6 +80,13 @@
         }
 
         NavigationManager.Refresh();
+    }
+
+    private void SelectCity(string cityName)
+    {
+        selectedCity = cityName;
+
+        _servers = ServerRepository.GetServersByCity(selectedCity);
     }
 
 }
