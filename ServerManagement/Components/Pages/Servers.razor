@@ -16,7 +16,7 @@
         {
             <div class="col flex-grow-0">
                 <div
-                    class="card @(selectedCity.Equals(city, StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")"
+                    class="card @(_selectedCity.Equals(city, StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")"
                     style="width: 8rem">
                     <img src="@($"/images/{city}.png")" class="card-img-top" alt=""/>
                     <div class="card-body">
@@ -31,17 +31,24 @@
 
 <br/>
 
+<div class="input-group mb-3">
+    <input type="text" class="form-control" placeholder="Search Servers" @bind-value="ServerFilter"
+           @bind-value:event="oninput"/>
+    <button class="btn btn-outline-secondary" type="button" id="button-search" @onclick="@HandleSearch">Search
+    </button>
+</div>
+
 <table class="table table-bordered table-striped">
     <thead>
     <tr>
-        <th>Server</th>
+        <th style="width: 80%">Server</th>
         <th>Actions</th>
     </tr>
     </thead>
     <tbody>
     @foreach (var server in _servers)
     {
-        <tr>
+        <tr @key="server.ServerId">
             <td>
                 @server.Name in @server.City is
                 <span style="color: @(server.IsOnline ? "green" : "red")">@(server.IsOnline ? "online" : "offline")
@@ -70,7 +77,20 @@
     private readonly List
         <string> _cities = CityRepository.GetCities();
 
-    private string selectedCity = "Toronto";
+    private string _selectedCity = "Toronto";
+
+    private string _serverFilter = "";
+
+    private string ServerFilter
+    {
+        get => _serverFilter;
+        set
+        {
+            _serverFilter = value;
+
+            _servers = ServerRepository.SearchServers(_serverFilter);
+        }
+    }
 
     private void DeleteServer(int serverId)
     {
@@ -84,9 +104,16 @@
 
     private void SelectCity(string cityName)
     {
-        selectedCity = cityName;
+        _selectedCity = cityName;
 
-        _servers = ServerRepository.GetServersByCity(selectedCity);
+        _servers = ServerRepository.GetServersByCity(_selectedCity);
+    }
+
+    private void HandleSearch()
+    {
+        _servers = ServerRepository.SearchServers(ServerFilter);
+
+        _selectedCity = string.Empty;
     }
 
 }
